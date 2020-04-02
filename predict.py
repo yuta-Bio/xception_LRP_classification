@@ -50,16 +50,19 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 patience=300,
                                                 verbose=1)]
 
-base_model = applications.xception.Xception(weights=None, include_top=False, input_shape=shape)
+base_model = applications.xception.Xception(include_top=False, input_shape=shape)
 x = layers.GlobalAveragePooling2D()(base_model.output)
-x = layers.Dense(1000, activation='relu')(x)
-x = layers.Dense(100, activation='relu')(x)
+x = layers.Dense(256, activation='relu')(x)
 x = layers.Dense(7, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=x)
-model.compile(optimizer=Adam(lr=0.01), loss='categorical_crossentropy', metrics=['acc'])
+
+for layer in model.layers:
+    layer.trainable = True
+
+model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit_generator(train_generator,
                     steps_per_epoch=70//batch_size,
-                    epochs=1000,
+                    epochs=50,
                     validation_data=test_generator,
                     validation_steps=12//batch_size,
                     callbacks=callbacks_list)
@@ -68,7 +71,7 @@ model.save('LRP_classifier.h5')
 acc = history.history['acc']
 val_acc = history.history['val_acc']
 epochs = range(1, len(acc) +1)
-plt.plot(epochs, acc, 'bo', label = 'Training loss')
-plt.plot(epochs, val_acc, 'b', label='Validation_loss')
+plt.plot(epochs, acc, 'bo', label = 'Training acc')
+plt.plot(epochs, val_acc, 'b', label='Validation acc')
 plt.legend()
 plt.savefig('LRP_classifier')
