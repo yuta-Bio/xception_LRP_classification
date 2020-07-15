@@ -30,8 +30,9 @@ class ImageDataGenerater(object):
         random.shuffle(self.class_path_pairs)
 
         # ensure memory area
-        self.src_img    = np.zeros((img_shape[0], img_shape[1], 3), 'uint8')
-        self.temp_img   = np.zeros((self.img_shape[0], self.img_shape[1], 3), 'uint8')
+        self.src_img     = np.zeros((self.img_shape[0], self.img_shape[1], 1), 'uint8')
+        self.temp_img    = np.zeros((self.img_shape[0], self.img_shape[1], 1), 'uint8')
+        self.pre_src_img = np.zeros((self.img_shape[0], self.img_shape[1], 1), 'uint8')
 
         # define training and validation number
         self.train_num  = len(self.class_path_pairs) - val_num
@@ -46,7 +47,7 @@ class ImageDataGenerater(object):
         # separete data to training and validation
         for num, i in enumerate(self.class_path_pairs):
             temp_src_img = cv2.imread(
-                                str(i[1]))
+                                str(i[1]), 0)
 
             # append data to training list
             if num >= val_num:
@@ -75,7 +76,7 @@ class ImageDataGenerater(object):
 
 
     def train_generater(self, batch_size):
-        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 3), 'float16')
+        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
         targets = np.zeros((batch_size, self.num_class), 'uint8')
 
         while True:
@@ -130,6 +131,7 @@ class ImageDataGenerater(object):
 
                 con_temp1 = ImageEnhance.Sharpness(pil_temp)
                 pil_temp = con_temp1.enhance(random.uniform(0.1, 1.1))
+                pil_temp = pil_temp.convert("L")
 
                 self.src_img = np.array(pil_temp)
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
@@ -152,11 +154,11 @@ class ImageDataGenerater(object):
 
                     rec_img = copy.copy(self.temp_img)
                     rand_color = random.randint(0, 150)
-                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), (rand_color, rand_color, rand_color), -1)
+                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
                     self.src_img = cv2.subtract(self.src_img, rec_img)
 
                 # reshape data to input shape
-                inputs[batch_count] = self.src_img / 255
+                inputs[batch_count] = (self.src_img / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
                 cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
@@ -165,7 +167,7 @@ class ImageDataGenerater(object):
                 batch_count += 1
 
     def val_generate(self, batch_size):
-        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 3), 'float16')
+        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
         targets = np.zeros((batch_size, self.num_class), 'uint8')
         while True:
             batch_count = 0
@@ -173,7 +175,7 @@ class ImageDataGenerater(object):
                 if batch_count == batch_size:
                     batch_count = 0
                     yield inputs, targets
-                inputs[batch_count] = self.src_img/255
+                inputs[batch_count] = (self.src_img/255).reshape((self.img_shape[0], self.img_shape[1], 1))
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
                 batch_count += 1
