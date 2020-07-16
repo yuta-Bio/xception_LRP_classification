@@ -48,6 +48,10 @@ class ImageDataGenerater(object):
         for num, i in enumerate(self.class_path_pairs):
             temp_src_img = cv2.imread(
                                 str(i[1]), 0)
+            crop_rate = 3
+            ht = temp_src_img.shape[0]
+            wd = temp_src_img.shape[1]
+            temp_src_img = temp_src_img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
 
             # append data to training list
             if num >= val_num:

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-train_dir = "/media/suthy/BDiskA/lateral_root_primordium_image/train/stage2"
+train_dir = ""
 
 fnames = [os.path.join(train_dir, fname)
                     for fname in os.listdir(train_dir)]
