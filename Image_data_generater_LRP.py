@@ -81,8 +81,9 @@ class ImageDataGenerater(object):
 
 
     def train_generater(self, batch_size):
-        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
-        targets = np.zeros((batch_size, 1), 'float16')
+        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float32')
+        # targets = np.zeros((batch_size, 1), 'float32')
+        targets = np.zeros((batch_size, self.num_class), 'float32')
 
         while True:
             batch_count = 0
@@ -135,58 +136,63 @@ class ImageDataGenerater(object):
                 pil_temp = con_temp.enhance(alpha)
 
                 con_temp1 = ImageEnhance.Sharpness(pil_temp)
-                pil_temp = con_temp1.enhance(random.uniform(0.1, 1.1))
+                pil_temp = con_temp1.enhance(random.uniform(0.9, 1.1))
                 pil_temp = pil_temp.convert("L")
 
                 self.src_img = np.array(pil_temp)
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
 
 
-                rec_freq = random.randint(0, 2)
-                for k in range(rec_freq):
+                # rec_freq = random.randint(0, 2)
+                # for k in range(rec_freq):
 
-                    # add black rectangle
-                    x = random.randint(0, self.img_shape[0]-1)
-                    y = random.randint(0, self.img_shape[0]-1)
-                    if x+(self.img_shape[0]//3*2) <= self.img_shape[0]:
-                        h = random.randint(x+1, x+self.img_shape[0]//3*2)
-                    else:
-                        h = random.randint(x+1, self.img_shape[0])
-                    if y+(self.img_shape[0]//3*2) <= self.img_shape[0]:
-                        w = random.randint(y+1, y+self.img_shape[0]//3*2)
-                    else:
-                        w = random.randint(y+1, self.img_shape[0])
+                #     # add black rectangle
+                #     x = random.randint(0, self.img_shape[0]-1)
+                #     y = random.randint(0, self.img_shape[0]-1)
+                #     if x+(self.img_shape[0]//3*2) <= self.img_shape[0]:
+                #         h = random.randint(x+1, x+self.img_shape[0]//3*2)
+                #     else:
+                #         h = random.randint(x+1, self.img_shape[0])
+                #     if y+(self.img_shape[0]//3*2) <= self.img_shape[0]:
+                #         w = random.randint(y+1, y+self.img_shape[0]//3*2)
+                #     else:
+                #         w = random.randint(y+1, self.img_shape[0])
 
-                    rec_img = copy.copy(self.temp_img)
-                    rand_color = random.randint(0, 150)
-                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
-                    self.src_img = cv2.subtract(self.src_img, rec_img)
+                #     rec_img = copy.copy(self.temp_img)
+                #     rand_color = random.randint(0, 150)
+                #     rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
+                #     self.src_img = cv2.subtract(self.src_img, rec_img)
 
                 # reshape data to input shape
-                inputs[batch_count] = (self.src_img.astype('float16') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
-                targets[batch_count] = (1 / self.num_class) * i_class_num
+                inputs[batch_count] = (self.src_img.astype('float32') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
+                targets[batch_count] = 0
+                targets[batch_count, i_class_num] = 1
                 cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
                 cv2.imshow('dst', self.src_img)
                 cv2.waitKey(1)
                 batch_count += 1
 
     def val_generate(self, batch_size):
-        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
-        targets = np.zeros((batch_size, 1), 'float16')
+        inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float32')
+        # targets = np.zeros((batch_size, 1), 'float32')
+        targets = np.zeros((batch_size, self.num_class), 'float32')
         while True:
             batch_count = 0
             for self.src_img, i_class_num in zip(self.val_img_list, self.val_class_list):
                 if batch_count == batch_size:
                     batch_count = 0
                     yield inputs, targets
-                inputs[batch_count] = (self.src_img.astype('float16') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                inputs[batch_count] = (self.src_img.astype('float32') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
                 targets[batch_count] = 0
-                targets[batch_count] = (1 / self.num_class) * i_class_num
+                targets[batch_count, i_class_num] = 1
                 batch_count += 1
 
 if __name__ == "__main__":
-    data_gen = ImageDataGenerater('/home/pmb-mju/DL_train_data/complete', 30)
+    data_gen = ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete3', 30)
 
-    for i in data_gen.train_generater(3):
+    for i in data_gen.train_generater(1):
         print(i[1])
+        print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
         input()
