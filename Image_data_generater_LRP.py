@@ -163,7 +163,7 @@ class ImageDataGenerater(object):
                     self.src_img = cv2.subtract(self.src_img, rec_img)
 
                 # reshape data to input shape
-                inputs[batch_count] = (self.src_img / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                inputs[batch_count] = (self.src_img.astype('float16') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
                 targets[batch_count] = (1 / self.num_class) * i_class_num
                 cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
                 cv2.imshow('dst', self.src_img)
@@ -179,7 +179,7 @@ class ImageDataGenerater(object):
                 if batch_count == batch_size:
                     batch_count = 0
                     yield inputs, targets
-                inputs[batch_count] = (self.src_img/255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                inputs[batch_count] = (self.src_img.astype('float16') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
                 targets[batch_count] = 0
                 targets[batch_count] = (1 / self.num_class) * i_class_num
                 batch_count += 1
