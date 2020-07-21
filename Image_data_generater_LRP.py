@@ -27,6 +27,7 @@ class ImageDataGenerater(object):
                 self.class_path_pairs.append((num_stage, j))
 
         #shuffle class and path's list for randomize
+        random.seed(0)
         random.shuffle(self.class_path_pairs)
 
         # ensure memory area
@@ -48,7 +49,7 @@ class ImageDataGenerater(object):
         for num, i in enumerate(self.class_path_pairs):
             temp_src_img = cv2.imread(
                                 str(i[1]), 0)
-            crop_rate = 3
+            crop_rate = 5
             ht = temp_src_img.shape[0]
             wd = temp_src_img.shape[1]
             temp_src_img = temp_src_img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
@@ -81,7 +82,7 @@ class ImageDataGenerater(object):
 
     def train_generater(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
-        targets = np.zeros((batch_size, self.num_class), 'uint8')
+        targets = np.zeros((batch_size, 1), 'float16')
 
         while True:
             batch_count = 0
@@ -163,8 +164,7 @@ class ImageDataGenerater(object):
 
                 # reshape data to input shape
                 inputs[batch_count] = (self.src_img / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
-                targets[batch_count] = 0
-                targets[batch_count, i_class_num] = 1
+                targets[batch_count] = (1 / self.num_class) * i_class_num
                 cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
                 cv2.imshow('dst', self.src_img)
                 cv2.waitKey(1)
@@ -172,7 +172,7 @@ class ImageDataGenerater(object):
 
     def val_generate(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float16')
-        targets = np.zeros((batch_size, self.num_class), 'uint8')
+        targets = np.zeros((batch_size, 1), 'float16')
         while True:
             batch_count = 0
             for self.src_img, i_class_num in zip(self.val_img_list, self.val_class_list):
@@ -181,7 +181,7 @@ class ImageDataGenerater(object):
                     yield inputs, targets
                 inputs[batch_count] = (self.src_img/255).reshape((self.img_shape[0], self.img_shape[1], 1))
                 targets[batch_count] = 0
-                targets[batch_count, i_class_num] = 1
+                targets[batch_count] = (1 / self.num_class) * i_class_num
                 batch_count += 1
 
 if __name__ == "__main__":

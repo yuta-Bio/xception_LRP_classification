@@ -24,7 +24,7 @@ batch_size = 2
 # test_datagen = ImageDataGenerator(rescale=1./255)
 
 # train_generator = train_datagen.flow_from_directory(
-#                     "/home/pmb-mju/DL_train_data/LRP_Class_resrc/train",
+#                     "/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete2",
 #                     target_size=shape[:2],
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
@@ -35,7 +35,7 @@ batch_size = 2
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete2', 100, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete2', 10, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',
@@ -50,25 +50,26 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                     keras.callbacks.ReduceLROnPlateau(
                                                 monitor='val_loss',
                                                 factor=0.1,
-                                                patience=10,
+                                                patience=5,
                                                 verbose=1),
                     keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
 
 base_model = applications.xception.Xception(include_top=False, input_shape=shape, weights = None)
 x = layers.GlobalAveragePooling2D()(base_model.output)
 x = layers.Dense(1000, activation='relu')(x)
+x = layers.Dense(1000, activation='relu')(x)
 x = layers.Dense(256, activation='relu')(x)
-output = layers.Dense(data_gen.num_class, activation='softmax')(x)
+output = layers.Dense(1)(x)
 model = Model(inputs=base_model.input, outputs=output)
 
 for num, layer in enumerate(model.layers):
     model.layers[num].trainable = True
 
 model.summary()
-model.compile(Adam(), loss='categorical_crossentropy', metrics=['acc'])
+model.compile(Adam(0.001), loss='mse', metrics=['mae'])
 history = model.fit_generator(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
-                    epochs=200,
+                    epochs=50,
                     validation_data=data_gen.val_generate(batch_size),
                     validation_steps=data_gen.val_num//batch_size,
                     callbacks=callbacks_list)
@@ -80,4 +81,4 @@ epochs = range(1, len(acc) +1)
 plt.plot(epochs, acc, 'bo', label = 'Training acc')
 plt.plot(epochs, val_acc, 'b', label='Validation acc')
 plt.legend()
-plt.savefig('LRP_classifier')
+plt.savefig('LRP_classifier.png')
