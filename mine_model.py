@@ -11,7 +11,7 @@ import numpy as np
 import Image_data_generater_LRP
 
 
-shape = (128, 128, 1)
+shape = (512, 512, 1)
 batch_size = 4
 path = ("path")
 # train_datagen = ImageDataGenerator(
