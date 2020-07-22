@@ -11,6 +11,7 @@ import Image_data_generater_LRP
 
 shape = (512, 512, 1)
 batch_size = 2
+path = ("")
 # train_datagen = ImageDataGenerator(
 #                     rescale=1./255,
 #                     rotation_range=360,
@@ -24,18 +25,18 @@ batch_size = 2
 # test_datagen = ImageDataGenerator(rescale=1./255)
 
 # train_generator = train_datagen.flow_from_directory(
-#                     "",
+#                     path,
 #                     target_size=shape[:2],
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
 # test_generator = test_datagen.flow_from_directory(
-#                     "",
+#                     path,
 #                     target_size=shape[:2],
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete3', 100, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater(path, 100, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',

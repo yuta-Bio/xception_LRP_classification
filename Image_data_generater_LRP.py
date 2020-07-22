@@ -142,7 +142,7 @@ class ImageDataGenerater(object):
                 self.src_img = np.array(pil_temp)
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
 
-
+                # draw rectangle
                 # rec_freq = random.randint(0, 2)
                 # for k in range(rec_freq):
 
@@ -165,6 +165,7 @@ class ImageDataGenerater(object):
 
                 # reshape data to input shape
                 inputs[batch_count] = (self.src_img.astype('float32') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+
                 # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
@@ -190,7 +191,8 @@ class ImageDataGenerater(object):
                 batch_count += 1
 
 if __name__ == "__main__":
-    data_gen = ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete3', 30)
+    path = ("path")
+    data_gen = ImageDataGenerater(path, 30)
 
     for i in data_gen.train_generater(1):
         print(i[1])

@@ -13,6 +13,7 @@ import Image_data_generater_LRP
 
 shape = (128, 128, 1)
 batch_size = 4
+path = ("path")
 # train_datagen = ImageDataGenerator(
 #                     rescale=1./255,
 #                     rotation_range=360,
@@ -26,13 +27,13 @@ batch_size = 4
 # test_datagen = ImageDataGenerator(rescale=1./255)
 
 # train_generator = train_datagen.flow_from_directory(
-#                     "/home/pmb-mju/DL_train_data/LRP_Class_resrc/train",
+#                     path,
 #                     target_size=shape[:2],
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
 # test_generator = test_datagen.flow_from_directory(
-#                     "/home/pmb-mju/DL_train_data/LRP_Class_resrc/test",
+#                     path,
 #                     target_size=shape[:2],
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
@@ -47,7 +48,7 @@ batch_size = 4
 # y_train = keras.utils.to_categorical(y_train, 10)
 # y_test = keras.utils.to_categorical(y_test, 10)
 
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/media/suthy/BDiskA/LRP_Class_resrc/lateral_root_primordium_image_ori/complete3', 100, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater(path, 100, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',
@@ -70,7 +71,7 @@ inputs = keras.layers.Input(shape)
 x = inputs
 for i in range(4):
     x = layers.Conv2D(int(math.pow(2, i + 4)), (3, 3), activation="relu", padding = "same")(x)
-    x = layers.Conv2D(int(math.pow(2, i + 4)), (11,11), activation="relu", padding = "same")(x)
+    x = layers.Conv2D(int(math.pow(2, i + 4)), (5,5), activation="relu", padding = "same")(x)
     x = layers.MaxPooling2D(padding='same')(x)
 
 x = layers.Flatten()(x)
@@ -80,7 +81,9 @@ outputs = layers.Dense(data_gen.num_class, activation='softmax')(x)
 model = Model(inputs=inputs, outputs=outputs)
 
 model.summary()
+
 # model.compile(optimizer=Adam(), loss='mse', metrics=['mae'])
+
 model.compile(optimizer=Adam(0.001), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit_generator(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
@@ -88,6 +91,7 @@ history = model.fit_generator(data_gen.train_generater(batch_size),
                     validation_data=data_gen.val_generate(batch_size),
                     validation_steps=data_gen.val_num//batch_size,
                     callbacks=callbacks_list)
+
 # history = model.fit(x_train, y_train, batch_size=16, epochs=20, callbacks=callbacks_list, validation_data=(x_test, y_test))
 model.save('LRP_classifier.h5')
 
