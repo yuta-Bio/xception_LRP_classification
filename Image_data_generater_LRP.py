@@ -49,10 +49,6 @@ class ImageDataGenerater(object):
         for num, i in enumerate(self.class_path_pairs):
             temp_src_img = cv2.imread(
                                 str(i[1]), 0)
-            crop_rate = 5
-            ht = temp_src_img.shape[0]
-            wd = temp_src_img.shape[1]
-            temp_src_img = temp_src_img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
 
             # append data to training list
             if num >= val_num:
@@ -62,6 +58,11 @@ class ImageDataGenerater(object):
             # append data to validation list
             else:
 
+                # crop image
+                crop_rate = 3
+                ht = temp_src_img.shape[0]
+                wd = temp_src_img.shape[1]
+                temp_src_img = temp_src_img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
                 #reshape image to square
                 if temp_src_img.shape[0] == temp_src_img.shape[1]:
                     pass
@@ -77,8 +78,6 @@ class ImageDataGenerater(object):
                 # append list
                 self.val_img_list.append(cv2.resize(temp_src_img, img_shape[:2]))
                 self.val_class_list.append(i[0])
-
-
 
     def train_generater(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], 1), 'float32')
@@ -107,13 +106,19 @@ class ImageDataGenerater(object):
 
                 # random rotation
                 theta = random.randint(0, 360)
-                oy, ox = int(self.pre_src_img.shape[0]/2), int(self.pre_src_img.shape[1]/2)
+                oy, ox = self.pre_src_img.shape[0]/2, self.pre_src_img.shape[1]/2
                 R = cv2.getRotationMatrix2D((ox, oy), theta, 1.0)
-                self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, self.pre_src_img.shape[:2], flags=cv2.INTER_NEAREST, borderMode=cv2.BORDER_REPLICATE)
+                self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, (int(ox*2), int(oy*2)), flags=cv2.INTER_NEAREST)
+
+                # crop image
+                crop_rate = 3
+                ht = self.pre_src_img.shape[0]
+                wd = self.pre_src_img.shape[1]
+                self.pre_src_img = self.pre_src_img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
 
                 # random magnificance
-                range_img = random.uniform(1.0, 2.0)
-                self.pre_src_img    = cv2.resize(self.pre_src_img, (int(self.pre_src_img.shape[0] * range_img), int(self.pre_src_img.shape[0] * range_img)))
+                range_img = random.uniform(0.8, 1.2)
+                self.pre_src_img    = cv2.resize(self.pre_src_img, (int(self.pre_src_img.shape[0] * range_img), int(self.pre_src_img.shape[0] * range_img)), interpolation=cv2.INTER_NEAREST)
 
                 # crop image to square
                 if self.pre_src_img.shape[0] == self.pre_src_img.shape[1]:
@@ -130,13 +135,13 @@ class ImageDataGenerater(object):
                 self.src_img = cv2.resize(self.pre_src_img, self.img_shape[:2])
 
                 # image process at whole image
-                alpha = random.uniform(0.7, 1.3)
+                alpha = random.uniform(0.3, 1.8)
                 pil_temp = Image.fromarray(self.src_img)
                 con_temp = ImageEnhance.Contrast(pil_temp)
                 pil_temp = con_temp.enhance(alpha)
 
                 con_temp1 = ImageEnhance.Sharpness(pil_temp)
-                pil_temp = con_temp1.enhance(random.uniform(0.9, 1.1))
+                pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
                 pil_temp = pil_temp.convert("L")
 
                 self.src_img = np.array(pil_temp)
@@ -164,14 +169,14 @@ class ImageDataGenerater(object):
                 #     self.src_img = cv2.subtract(self.src_img, rec_img)
 
                 # reshape data to input shape
-                inputs[batch_count] = (self.src_img.astype('float32') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape((self.img_shape[0], self.img_shape[1], 1))
 
                 # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
-                cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
-                cv2.imshow('dst', self.src_img)
-                cv2.waitKey(1)
+                # cv2.namedWindow('dst', cv2.WINDOW_NORMAL)
+                # cv2.imshow('dst', self.src_img)
+                # cv2.waitKey(1)
                 batch_count += 1
 
     def val_generate(self, batch_size):
@@ -184,17 +189,25 @@ class ImageDataGenerater(object):
                 if batch_count == batch_size:
                     batch_count = 0
                     yield inputs, targets
-                inputs[batch_count] = (self.src_img.astype('float32') / 255).reshape((self.img_shape[0], self.img_shape[1], 1))
+                inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape((self.img_shape[0], self.img_shape[1], 1))
                 # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
                 batch_count += 1
 
+
+
 if __name__ == "__main__":
-    path = ("path")
+    path = ("/home/pmb-mju/DL_train_data/complete")
     data_gen = ImageDataGenerater(path, 30)
 
+    print(data_gen.class_num_pair)
+    print('train num', str(len(data_gen.train_class_list)))
+    print('val num', str(len(data_gen.val_class_list)))
     for i in data_gen.train_generater(1):
         print(i[1])
+        # cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
+        # cv2.imshow('temp', ((i[0]* 255).astype('uint8')).reshape(1024, 1024) )
+        # cv2.waitKey()
         print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
-        input()
+
