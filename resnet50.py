@@ -52,10 +52,16 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 verbose=1),
                     keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
 
-base_model = applications.ResNet50V2(weights = None, include_top = False, input_shape = shape)
-x = layers.MaxPooling2D()(base_model.output)
-x = layers.Flatten()(x)
+base_model = applications.Xception(weights = None, include_top = False, input_shape = shape)
+x = layers.Flatten()(base_model.output)
+x = layers.Dense(10000, activation='relu')(x)
+x = layers.Dropout(0.15)(x)
 x = layers.Dense(1000, activation='relu')(x)
+x = layers.Dropout(0.15)(x)
+x = layers.Dense(1000, activation='relu')(x)
+x = layers.Dropout(0.15)(x)
+x = layers.Dense(256, activation='relu')(x)
+x = layers.Dropout(0.15)(x)
 output = layers.Dense(data_gen.num_class, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=output)
 
@@ -72,7 +78,7 @@ history = model.fit_generator(data_gen.train_generater(batch_size),
                     callbacks=callbacks_list)
 model.save('LRP_classifier.h5')
 
-acc = history.history['acc']
+acc = history.histry['acc']
 val_acc = history.history['val_acc']
 epochs = range(1, len(acc) +1)
 plt.plot(epochs, acc, 'bo', label = 'Training acc')
