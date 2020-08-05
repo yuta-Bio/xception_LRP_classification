@@ -35,7 +35,7 @@ batch_size = 16
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/complete', 100, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/complete', 200, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',
@@ -44,20 +44,22 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 verbose=1),
                     keras.callbacks.EarlyStopping(
                                                 monitor='val_loss',
-                                                patience=70,
+                                                patience=110,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
+                                                factor=0.5,
                                                 monitor='val_loss',
-                                                patience=30,
+                                                patience=50,
                                                 verbose=1),
                     keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
 
 base_model = applications.Xception(weights = None, include_top = False, input_shape = shape)
-x = layers.Flatten()(base_model.output)
+x = layers.AveragePooling2D()(base_model.output)
+x = layers.Flatten()(x)
 x = layers.Dense(10000, activation='relu')(x)
-x = layers.Dropout(0.15)(x)
+x = layers.Dropout(0.2)(x)
 x = layers.Dense(1000, activation='relu')(x)
-x = layers.Dropout(0.15)(x)
+x = layers.Dropout(0.2)(x)
 x = layers.Dense(1000, activation='relu')(x)
 x = layers.Dropout(0.15)(x)
 x = layers.Dense(256, activation='relu')(x)
@@ -69,6 +71,7 @@ for num, layer in enumerate(model.layers):
     model.layers[num].trainable = True
 
 model.summary()
+keras.utils.plot_model(model, 'xception_model.png', True)
 model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit_generator(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
@@ -78,7 +81,7 @@ history = model.fit_generator(data_gen.train_generater(batch_size),
                     callbacks=callbacks_list)
 model.save('LRP_classifier.h5')
 
-acc = history.histry['acc']
+acc = history.history['acc']
 val_acc = history.history['val_acc']
 epochs = range(1, len(acc) +1)
 plt.plot(epochs, acc, 'bo', label = 'Training acc')

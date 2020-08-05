@@ -19,8 +19,26 @@ ls_stage = []
 for num in range(total_frame):
     flg, img = movie.read()
     img = img_to_square(img)
+    #crop image
+    crop_rate = 3
+    ht = img.shape[0]
+    wd = img.shape[1]
+    img = img[ht//crop_rate: ht - (ht//crop_rate), wd // crop_rate : wd - (wd // crop_rate)]
+
+    #to square
+    if img.shape[0] == img.shape[1]:
+        pass
+    elif img.shape[0] > img.shape[1]:
+        dif = img.shape[0] - img.shape[1]
+        img = np.delete(img, np.s_[-(dif//2+1):], 0)
+        img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 0)
+    else:
+        dif = self.pre_src_img.shape[1]-self.pre_src_img.shape[0]
+        img = np.delete(img, np.s_[-(dif//2+1):], 1)
+        img = np.delete(img, np.s_[:abs(dif-(dif//2)-1)], 1)
+
     img = cv2.resize(img, shape)
-    img = img.astype('float')/255
+    img = img.astype('float') / 255
     img = np.reshape(img, (1, shape[0], shape[1], 1))
     inf = resnet.predict(img)
     lrp_stage = inf.argmax()

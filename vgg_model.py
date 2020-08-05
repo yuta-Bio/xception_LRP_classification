@@ -73,6 +73,7 @@ for num, layer in enumerate(model.layers):
     model.layers[num].trainable = True
 
 model.summary()
+keras.utils.plot_model(model, 'xception_model.png', True)
 model.compile(optimizer=keras.optimizers.Adam(0.001), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit_generator(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,

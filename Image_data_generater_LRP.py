@@ -148,25 +148,25 @@ class ImageDataGenerater(object):
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
 
                 # draw rectangle
-                # rec_freq = random.randint(0, 2)
-                # for k in range(rec_freq):
+                rec_freq = random.randint(0, 2)
+                for k in range(rec_freq):
 
-                #     # add black rectangle
-                #     x = random.randint(0, self.img_shape[0]-1)
-                #     y = random.randint(0, self.img_shape[0]-1)
-                #     if x+(self.img_shape[0]//3*2) <= self.img_shape[0]:
-                #         h = random.randint(x+1, x+self.img_shape[0]//3*2)
-                #     else:
-                #         h = random.randint(x+1, self.img_shape[0])
-                #     if y+(self.img_shape[0]//3*2) <= self.img_shape[0]:
-                #         w = random.randint(y+1, y+self.img_shape[0]//3*2)
-                #     else:
-                #         w = random.randint(y+1, self.img_shape[0])
+                    # add black rectangle
+                    x = random.randint(0, self.img_shape[0]-1)
+                    y = random.randint(0, self.img_shape[0]-1)
+                    if x+(self.img_shape[0]//3*2) <= self.img_shape[0]:
+                        h = random.randint(x+1, x+self.img_shape[0]//3*2)
+                    else:
+                        h = random.randint(x+1, self.img_shape[0])
+                    if y+(self.img_shape[0]//3*2) <= self.img_shape[0]:
+                        w = random.randint(y+1, y+self.img_shape[0]//3*2)
+                    else:
+                        w = random.randint(y+1, self.img_shape[0])
 
-                #     rec_img = copy.copy(self.temp_img)
-                #     rand_color = random.randint(0, 150)
-                #     rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
-                #     self.src_img = cv2.subtract(self.src_img, rec_img)
+                    rec_img = copy.copy(self.temp_img)
+                    rand_color = random.randint(0, 150)
+                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
+                    self.src_img = cv2.subtract(self.src_img, rec_img)
 
                 # reshape data to input shape
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape((self.img_shape[0], self.img_shape[1], 1))
