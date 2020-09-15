@@ -9,8 +9,8 @@ import numpy as np
 import Image_data_generater_LRP
 
 
-shape = (224, 224, 1)
-batch_size = 16
+shape = (512, 512, 1)
+batch_size = 4
 # train_datagen = ImageDataGenerator(
 #                     rescale=1./255,
 #                     rotation_range=360,
@@ -35,7 +35,7 @@ batch_size = 16
 #                     batch_size=batch_size,
 #                     class_mode='categorical')
 
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/complete', 200, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images', 20, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',
@@ -47,23 +47,22 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 patience=110,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
-                                                factor=0.5,
+                                                factor=0.1,
                                                 monitor='val_loss',
-                                                patience=50,
+                                                patience=20,
                                                 verbose=1),
                     keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
 
-base_model = applications.Xception(weights = None, include_top = False, input_shape = shape)
-x = layers.AveragePooling2D()(base_model.output)
-x = layers.Flatten()(x)
-x = layers.Dense(10000, activation='relu')(x)
-x = layers.Dropout(0.2)(x)
+base_model = applications.Xception(include_top = False, input_shape = shape, weights=None)
+x = layers.Flatten()(base_model.output)
 x = layers.Dense(1000, activation='relu')(x)
-x = layers.Dropout(0.2)(x)
+# x = layers.Dropout(0.2)(x)
 x = layers.Dense(1000, activation='relu')(x)
-x = layers.Dropout(0.15)(x)
+# x = layers.Dropout(0.2)(x):
+x = layers.Dense(1000, activation='relu')(x)
+# x = layers.Dropout(0.15)(x)
 x = layers.Dense(256, activation='relu')(x)
-x = layers.Dropout(0.15)(x)
+# x = layers.Dropout(0.15)(x)
 output = layers.Dense(data_gen.num_class, activation='softmax')(x)
 model = Model(inputs=base_model.input, outputs=output)
 
@@ -71,9 +70,9 @@ for num, layer in enumerate(model.layers):
     model.layers[num].trainable = True
 
 model.summary()
-keras.utils.plot_model(model, 'xception_model.png', True)
-model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='categorical_crossentropy', metrics=['acc'])
-history = model.fit_generator(data_gen.train_generater(batch_size),
+
+model.compile(optimizer=keras.optimizers.Adam(0.001), loss='categorical_crossentropy', metrics=['acc'])
+history = model.fit(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
                     epochs=1000,
                     validation_data=data_gen.val_generate(batch_size),
