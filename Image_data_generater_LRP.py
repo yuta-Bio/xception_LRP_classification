@@ -30,7 +30,7 @@ class ImageDataGenerater(object):
         self.num_class = len(self.class_num_pair)
 
         #shuffle class and path's list for randomize
-        random.seed(0)
+        random.seed(1)
         random.shuffle(self.class_path_pairs)
 
         # ensure memory area
@@ -68,7 +68,7 @@ class ImageDataGenerater(object):
             else:
 
                 # crop image
-                crop_rate = 4
+                crop_rate = 3.5
                 ht = temp_src_img.shape[0]
                 wd = temp_src_img.shape[1]
                 temp_src_img = temp_src_img[int(ht/crop_rate): int(ht - (ht/crop_rate)), int(wd / crop_rate) : int(wd - (wd / crop_rate))]
@@ -90,8 +90,8 @@ class ImageDataGenerater(object):
 
     def train_generater(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2]), 'float32')
-        # targets = np.zeros((batch_size, 1), 'float32')
         targets = np.zeros((batch_size, self.num_class), 'float32')
+        # targets = np.zeros((batch_size), 'float32')
 
         while True:
             batch_count = 0
@@ -120,13 +120,13 @@ class ImageDataGenerater(object):
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, (int(ox*2), int(oy*2)), flags=cv2.INTER_NEAREST)
 
                 # crop image
-                crop_rate = 4
+                crop_rate = 3.5
                 ht = self.pre_src_img.shape[0]
                 wd = self.pre_src_img.shape[1]
                 self.pre_src_img = self.pre_src_img[int(ht/crop_rate): int(ht - (ht/crop_rate)), int(wd / crop_rate) : int(wd - (wd / crop_rate))]
 
                 # random magnificance
-                range_img = random.uniform(0.8, 1.2)
+                range_img = random.uniform(0.9, 1.1)
                 self.pre_src_img    = cv2.resize(self.pre_src_img, (int(self.pre_src_img.shape[0] * range_img), int(self.pre_src_img.shape[0] * range_img)), interpolation=cv2.INTER_NEAREST)
 
                 # crop image to square
@@ -149,8 +149,8 @@ class ImageDataGenerater(object):
                 con_temp = ImageEnhance.Contrast(pil_temp)
                 pil_temp = con_temp.enhance(alpha)
 
-                con_temp1 = ImageEnhance.Sharpness(pil_temp)
-                pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
+                # con_temp1 = ImageEnhance.Sharpness(pil_temp)
+                # pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
                 # pil_temp = pil_temp.convert("L")
 
                 self.src_img = np.array(pil_temp)
@@ -180,15 +180,17 @@ class ImageDataGenerater(object):
                 # reshape data to input shape
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape(self.img_shape)
 
-                # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
+
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
+                # targets[batch_count] = 1 / self.num_class * i_class_num
                 batch_count += 1
 
     def val_generate(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2]), 'float32')
         # targets = np.zeros((batch_size, 1), 'float32')
         targets = np.zeros((batch_size, self.num_class), 'float32')
+        # targets = np.zeros((batch_size), 'float32')
         while True:
             batch_count = 0
             for self.src_img, i_class_num in zip(self.val_img_list, self.val_class_list):
@@ -196,15 +198,16 @@ class ImageDataGenerater(object):
                     batch_count = 0
                     yield inputs, targets
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape(self.img_shape)
-                # targets[batch_count] = (1 / (self.num_class - 1)) * i_class_num
+
                 targets[batch_count] = 0
                 targets[batch_count, i_class_num] = 1
+                # targets[batch_count] = 1 / self.num_class * i_class_num
                 batch_count += 1
 
 
 
 if __name__ == "__main__":
-    path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images")
+    path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center")
     shape = (512, 512, 1)
     data_gen = ImageDataGenerater(path, 30, img_shape=shape)
 
@@ -213,8 +216,10 @@ if __name__ == "__main__":
     print('val num', str(len(data_gen.val_class_list)))
     for i in data_gen.train_generater(1):
         print(i[1])
+        img = (i[0] * 255).astype('uint8').reshape(shape)
         cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
-        cv2.imshow('temp', ((i[0]* 255).astype('uint8')).reshape(shape) )
-        cv2.waitKey()
+        cv2.imshow('temp', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
 

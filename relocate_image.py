@@ -4,7 +4,7 @@ import glob
 import cv2
 import numpy as np
 
-src_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/200914/dr5_7day_x40_ap6_ex11_int82")
+src_path = ("/media/pmb-mju/uemura/200923_dr5_ms_x40_7day_ap6")
 ls_path = glob.glob(src_path + '/images/*.tif')
 path_stage0 = os.path.join(src_path, 'stage0')
 path_stage1 = os.path.join(src_path, 'stage1')

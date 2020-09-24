@@ -17,7 +17,7 @@ class img_data:
             move_y = mid_y - y
             self.img = cv2.warpAffine(self.img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.img.shape[1], self.img.shape[0]))
 
-ls_path = glob.glob("/home/suthy/*.tif")
+ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images/**/*.tif")
 for path in ls_path:
     img = cv2.imread(str(path))
     image_data = img_data(str(path), img)
@@ -34,6 +34,6 @@ for path in ls_path:
         show_img = cv2.line(show_img, (0, high // 2), (width, high // 2), (255, 255, 255), 3)
 
         cv2.imshow("image translate", show_img)
-        if cv2.waitKey(1) == 97:
+        if cv2.waitKey(1) == 97:  #97 == a key
             cv2.imwrite(str(path), image_data.img)
             break
