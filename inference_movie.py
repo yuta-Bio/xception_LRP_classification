@@ -3,6 +3,7 @@ import numpy as np
 import keras
 from keras import models
 import matplotlib.pyplot as plt
+from manipulate_img import img_to_square
 
 
 movie_path = ('/home/pmb-mju/DL_train_data/archive/200723_lateral_root_timelapse_cafe_dr5/Position048_chan00.mp4')
@@ -31,9 +32,9 @@ for num in range(total_frame):
     elif img.shape[0] > img.shape[1]:
         dif = img.shape[0] - img.shape[1]
         img = np.delete(img, np.s_[-(dif//2+1):], 0)
-        img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 0)
+        img = np.delete(img, np.s_[:abs(dif-(dif//2)-1)], 0)
     else:
-        dif = self.pre_src_img.shape[1]-self.pre_src_img.shape[0]
+        dif = img.shape[1]-img.shape[0]
         img = np.delete(img, np.s_[-(dif//2+1):], 1)
         img = np.delete(img, np.s_[:abs(dif-(dif//2)-1)], 1)
 

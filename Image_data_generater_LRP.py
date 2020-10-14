@@ -13,6 +13,7 @@ class ImageDataGenerater(object):
     def __init__(self, src_path, val_num, img_shape=(1024, 1024, 3)):
         self.img_shape = img_shape
 
+        self.crop_rate = 3.5
         # prepare each of stage's paths
         stages_path_list = [i for i in glob.glob(src_path + '/*') if (os.path.isdir(i))]
         classed_list = [i for i in os.listdir(src_path) if os.path.isdir(os.path.join(src_path, i))]
@@ -68,10 +69,9 @@ class ImageDataGenerater(object):
             else:
 
                 # crop image
-                crop_rate = 3.5
                 ht = temp_src_img.shape[0]
                 wd = temp_src_img.shape[1]
-                temp_src_img = temp_src_img[int(ht/crop_rate): int(ht - (ht/crop_rate)), int(wd / crop_rate) : int(wd - (wd / crop_rate))]
+                temp_src_img = temp_src_img[int(ht/self.crop_rate): int(ht - (ht/self.crop_rate)), int(wd / self.crop_rate) : int(wd - (wd / self.crop_rate))]
                 #reshape image to square
                 if temp_src_img.shape[0] == temp_src_img.shape[1]:
                     pass
@@ -100,6 +100,18 @@ class ImageDataGenerater(object):
                     batch_count = 0
                     yield inputs, targets
 
+                # crop image to square
+                if self.pre_src_img.shape[0] == self.pre_src_img.shape[1]:
+                    pass
+                elif self.pre_src_img.shape[0] > self.pre_src_img.shape[1]:
+                    dif = self.pre_src_img.shape[0]-self.pre_src_img.shape[1]
+                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[-(dif//2+1):], 0)
+                    temp_img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 0)
+                else:
+                    dif = self.pre_src_img.shape[1]-self.pre_src_img.shape[0]
+                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[-(dif//2+1):], 1)
+                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 1)
+
                 # random fliping
                 flip_case = random.randint(0, 3)
                 if flip_case == 0:
@@ -119,27 +131,19 @@ class ImageDataGenerater(object):
                 R = cv2.getRotationMatrix2D((ox, oy), theta, 1.0)
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, (int(ox*2), int(oy*2)), flags=cv2.INTER_NEAREST)
 
+                # random translation
+                move_x = random.randint(-1 * self.pre_src_img.shape[1] // 9, self.pre_src_img.shape[1] // 9)
+                move_y = random.randint(-1 * self.pre_src_img.shape[0] // 9, self.pre_src_img.shape[0] // 9)
+                self.pre_src_img = cv2.warpAffine(self.pre_src_img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.pre_src_img.shape[1], self.pre_src_img.shape[0]))
+
                 # crop image
-                crop_rate = 3.5
                 ht = self.pre_src_img.shape[0]
                 wd = self.pre_src_img.shape[1]
-                self.pre_src_img = self.pre_src_img[int(ht/crop_rate): int(ht - (ht/crop_rate)), int(wd / crop_rate) : int(wd - (wd / crop_rate))]
+                self.pre_src_img = self.pre_src_img[int(ht/self.crop_rate): int(ht - (ht/self.crop_rate)), int(wd / self.crop_rate) : int(wd - (wd / self.crop_rate))]
 
                 # random magnificance
-                range_img = random.uniform(0.9, 1.1)
+                range_img = random.uniform(0.8, 1.2)
                 self.pre_src_img    = cv2.resize(self.pre_src_img, (int(self.pre_src_img.shape[0] * range_img), int(self.pre_src_img.shape[0] * range_img)), interpolation=cv2.INTER_NEAREST)
-
-                # crop image to square
-                if self.pre_src_img.shape[0] == self.pre_src_img.shape[1]:
-                    pass
-                elif self.pre_src_img.shape[0] > self.pre_src_img.shape[1]:
-                    dif = self.pre_src_img.shape[0]-self.pre_src_img.shape[1]
-                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[-(dif//2+1):], 0)
-                    temp_img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 0)
-                else:
-                    dif = self.pre_src_img.shape[1]-self.pre_src_img.shape[0]
-                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[-(dif//2+1):], 1)
-                    self.pre_src_img = np.delete(self.pre_src_img, np.s_[:abs(dif-(dif//2)-1)], 1)
 
                 self.src_img = cv2.resize(self.pre_src_img, self.img_shape[:2])
 
@@ -149,8 +153,8 @@ class ImageDataGenerater(object):
                 con_temp = ImageEnhance.Contrast(pil_temp)
                 pil_temp = con_temp.enhance(alpha)
 
-                # con_temp1 = ImageEnhance.Sharpness(pil_temp)
-                # pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
+                con_temp1 = ImageEnhance.Sharpness(pil_temp)
+                pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
                 # pil_temp = pil_temp.convert("L")
 
                 self.src_img = np.array(pil_temp)
@@ -207,19 +211,20 @@ class ImageDataGenerater(object):
 
 
 if __name__ == "__main__":
-    path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center")
-    shape = (512, 512, 1)
+    path = ('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center')
+    shape = (500, 500, 1)
     data_gen = ImageDataGenerater(path, 30, img_shape=shape)
 
     print(data_gen.class_num_pair)
     print('train num', str(len(data_gen.train_class_list)))
     print('val num', str(len(data_gen.val_class_list)))
-    for i in data_gen.train_generater(1):
+    for num, i in enumerate(data_gen.train_generater(1)):
         print(i[1])
-        img = (i[0] * 255).astype('uint8').reshape(shape)
-        cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
-        cv2.imshow('temp', img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
+        if num % 280 == 1:
+            img = (i[0] * 255).astype('uint8').reshape(shape)
+            cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
+            cv2.imshow('temp', img)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+            print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
 

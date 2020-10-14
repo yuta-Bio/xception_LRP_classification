@@ -17,7 +17,7 @@ class img_data:
             move_y = mid_y - y
             self.img = cv2.warpAffine(self.img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.img.shape[1], self.img.shape[0]))
 
-ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images/**/*.tif")
+ls_path = glob.glob("/home/pmb-mju/DL_train_data/complete_translate/**/*.tif")
 for path in ls_path:
     img = cv2.imread(str(path))
     image_data = img_data(str(path), img)

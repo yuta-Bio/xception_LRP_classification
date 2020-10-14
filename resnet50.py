@@ -9,32 +9,10 @@ import numpy as np
 import Image_data_generater_LRP
 
 
-shape = (220, 220, 3)
-batch_size = 2
-# train_datagen = ImageDataGenerator(
-#                     rescale=1./255,
-#                     rotation_range=360,
-#                     width_shift_range=0.2,
-#                     height_shift_range=0.2,
-#                     shear_range=0.2,
-#                     zoom_range=0.2,
-#                     horizontal_flip=True,
-#                     vertical_flip=True)
+shape = (500, 500, 3)
+batch_size = 6
 
-# test_datagen = ImageDataGenerator(rescale=1./255)
-
-# train_generator = train_datagen.flow_from_directory(
-#                     "/home/pmb-mju/DL_train_data/LRP_Class_resrc/train",
-#                     target_size=shape[:2],
-#                     batch_size=batch_size,
-#                     class_mode='categorical')
-
-# test_generator = test_datagen.flow_from_directory(
-#                     "/home/pmb-mju/DL_train_data/LRP_Class_resrc/test",
-#                     target_size=shape[:2],
-#                     batch_size=batch_size,
-#                     class_mode='categorical')
-
+# keras's data generater
 data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center', 30, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
@@ -44,36 +22,30 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 verbose=1),
                     keras.callbacks.EarlyStopping(
                                                 monitor='val_loss',
-                                                patience=200,
+                                                patience=40,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
                                                 factor=0.1,
                                                 monitor='val_loss',
-                                                patience=100,
+                                                patience=20,
                                                 verbose=1),
                     keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
 
-base_model = applications.Xception(include_top = False, input_shape = shape)
+# use application's base model
+base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
 
+# froze model's layer
 # for num, layer in enumerate(base_model.layers):
 #     base_model.layers[num].trainable = False
 
 x = layers.Flatten()(base_model.output)
-# x = layers.GlobalAveragePooling2D()(base_model.output)
-# x = layers.Dense(1000, activation='relu')(x)
-# x = layers.Dropout(0.3)(x)
-# x = layers.Dense(1000, activation='relu')(x)
-# x = layers.Dropout(0.3)(x)
-# x = layers.Dense(1000, activation='relu')(x)
-# x = layers.Dropout(0.3)(x)
-# x = layers.Dense(256, activation='relu')(x)
-# x = layers.Dropout(0.05)(x)
 output = layers.Dense(data_gen.num_class, "softmax")(x)
 model = Model(inputs=base_model.input, outputs=output)
 
-
+# show Deep learning model information
 model.summary()
 
+# compile and run
 model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='categorical_crossentropy', metrics=['acc'])
 history = model.fit(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
@@ -81,21 +53,30 @@ history = model.fit(data_gen.train_generater(batch_size),
                     validation_data=data_gen.val_generate(batch_size),
                     validation_steps=data_gen.val_num//batch_size,
                     callbacks=callbacks_list)
+
+# save last model's information
 model.save('LRP_classifier.h5')
 
+# plot learning accuracy log
 acc = history.history['acc']
 val_acc = history.history['val_acc']
 epochs = range(1, len(acc) +1)
 plt.plot(epochs, acc, 'bo', label = 'Training acc')
 plt.plot(epochs, val_acc, 'b', label='Validation acc')
 plt.legend()
+
+# save accuracy figure
 plt.savefig('LRP_classifier')
 
+# clear figure
+plt.clf()
+
+# plot learning loss log
 loss = history.history['loss']
 val_loss = history.history['val_loss']
-
-plt.clf()
 plt.plot(epochs, loss, 'bo', label = 'Training loss')
 plt.plot(epochs, val_loss, 'b', label = 'validation loss')
 plt.legend()
+
+# save loss figure
 plt.savefig('LRP_classifier_loss')
