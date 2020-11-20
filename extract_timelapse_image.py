@@ -3,10 +3,10 @@ import glob
 import numpy as np
 import cv2
 
-path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201110_dr5_5dag_4day_cropped")
+path = (":///home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201013_timelapse_cropped")
 dst_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image/images")
 ls_path = glob.glob(str(path) + "/*.mp4")
-
+print(len(ls_path))
 for i_num, path in enumerate(ls_path):
     print("total " + str(len(ls_path)) + " current " + str(i_num) + " " + str(path), end = "\r")
     movie = cv2.VideoCapture(str(path))

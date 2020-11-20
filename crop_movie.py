@@ -18,8 +18,8 @@ class img_data:
             self.move_y = mid_y - y
             self.img = cv2.warpAffine(self.img, np.float32([[1, 0, self.move_x], [0, 1, self.move_y]]), (self.img.shape[1], self.img.shape[0]))
 
-ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201110_dr5_timelapse/*.mp4")
-dst_dir_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201110_dr5_5dag_4day_cropped")
+ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201013_timelapse_MSD_DR5_3day_30min_jfook_5dag/*.mp4")
+dst_dir_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image/images")
 shape = (700, 700)
 
 for num, path in enumerate(ls_path):
@@ -54,12 +54,14 @@ for num, path in enumerate(ls_path):
             break
     if flg_key == 98:
         continue
-    fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-    out = cv2.VideoWriter(str(dst_path),fourcc, 6.0, shape)
+    # fourcc = cv2.VideoWriter_fourcc('m','p','4', 'v')
+    # out = cv2.VideoWriter(str(dst_path),fourcc, 6.0, shape)
     for num in range(int(total_frame)):
         flg, img = movie.read()
         img = cv2.warpAffine(img, np.float32([[1, 0, image_data.move_x], [0, 1, image_data.move_y]]), (img.shape[1], img.shape[0]))
+        path_img_dst = str(os.path.join(dst_dir_path, str(os.path.basename(path)) + str(num) + 'centered.png'))
+        cv2.imwrite(path_img_dst, img)
         img = img[hg //2 -shape[0] // 2 : hg // 2 + shape[0] // 2, wd // 2 - shape[1] //2 : wd // 2 + shape[1] // 2]
-        out.write(img)
-    out.release()
-    movie.release()
+        # out.write(img)
+    # out.release()
+    # movie.release()

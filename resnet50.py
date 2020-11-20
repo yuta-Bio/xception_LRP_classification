@@ -13,7 +13,7 @@ shape = (500, 500, 3)
 batch_size = 6
 
 # keras's data generater
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center', 30, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center', 60, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath='LRP_classifier_best.h5',
@@ -22,7 +22,7 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 verbose=1),
                     keras.callbacks.EarlyStopping(
                                                 monitor='val_loss',
-                                                patience=40,
+                                                patience=100,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
                                                 factor=0.1,
@@ -39,14 +39,14 @@ base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
 #     base_model.layers[num].trainable = False
 
 x = layers.Flatten()(base_model.output)
-output = layers.Dense(data_gen.num_class, "softmax")(x)
+output = layers.Dense(1)(x)
 model = Model(inputs=base_model.input, outputs=output)
 
 # show Deep learning model information
 model.summary()
 
 # compile and run
-model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='categorical_crossentropy', metrics=['acc'])
+model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='mse', metrics=['mae'])
 history = model.fit(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
                     epochs=1000,
@@ -58,8 +58,8 @@ history = model.fit(data_gen.train_generater(batch_size),
 model.save('LRP_classifier.h5')
 
 # plot learning accuracy log
-acc = history.history['acc']
-val_acc = history.history['val_acc']
+acc = history.history['mae']
+val_acc = history.history['val_mae']
 epochs = range(1, len(acc) +1)
 plt.plot(epochs, acc, 'bo', label = 'Training acc')
 plt.plot(epochs, val_acc, 'b', label='Validation acc')

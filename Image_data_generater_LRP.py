@@ -90,8 +90,8 @@ class ImageDataGenerater(object):
 
     def train_generater(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2]), 'float32')
-        targets = np.zeros((batch_size, self.num_class), 'float32')
-        # targets = np.zeros((batch_size), 'float32')
+        # targets = np.zeros((batch_size, self.num_class), 'float32')
+        targets = np.zeros((batch_size), 'float32')
 
         while True:
             batch_count = 0
@@ -132,8 +132,8 @@ class ImageDataGenerater(object):
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, (int(ox*2), int(oy*2)), flags=cv2.INTER_NEAREST)
 
                 # random translation
-                move_x = random.randint(-1 * self.pre_src_img.shape[1] // 9, self.pre_src_img.shape[1] // 9)
-                move_y = random.randint(-1 * self.pre_src_img.shape[0] // 9, self.pre_src_img.shape[0] // 9)
+                move_x = random.randint(-1 * self.pre_src_img.shape[1] // 7, self.pre_src_img.shape[1] // 7)
+                move_y = random.randint(-1 * self.pre_src_img.shape[0] // 7, self.pre_src_img.shape[0] // 7)
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.pre_src_img.shape[1], self.pre_src_img.shape[0]))
 
                 # crop image
@@ -161,7 +161,7 @@ class ImageDataGenerater(object):
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
 
                 # draw rectangle
-                rec_freq = random.randint(0, 2)
+                rec_freq = random.randint(0, 5)
                 for k in range(rec_freq):
 
                     # add black rectangle
@@ -185,16 +185,16 @@ class ImageDataGenerater(object):
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape(self.img_shape)
 
 
-                targets[batch_count] = 0
-                targets[batch_count, i_class_num] = 1
-                # targets[batch_count] = 1 / self.num_class * i_class_num
+                # targets[batch_count] = 0
+                # targets[batch_count, i_class_num] = 1
+                targets[batch_count] = 1 / self.num_class * i_class_num
                 batch_count += 1
 
     def val_generate(self, batch_size):
         inputs = np.zeros((batch_size, self.img_shape[0], self.img_shape[1], self.img_shape[2]), 'float32')
         # targets = np.zeros((batch_size, 1), 'float32')
-        targets = np.zeros((batch_size, self.num_class), 'float32')
-        # targets = np.zeros((batch_size), 'float32')
+        # targets = np.zeros((batch_size, self.num_class), 'float32')
+        targets = np.zeros((batch_size), 'float32')
         while True:
             batch_count = 0
             for self.src_img, i_class_num in zip(self.val_img_list, self.val_class_list):
@@ -203,9 +203,9 @@ class ImageDataGenerater(object):
                     yield inputs, targets
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape(self.img_shape)
 
-                targets[batch_count] = 0
-                targets[batch_count, i_class_num] = 1
-                # targets[batch_count] = 1 / self.num_class * i_class_num
+                # targets[batch_count] = 0
+                # targets[batch_count, i_class_num] = 1
+                targets[batch_count] = 1 / self.num_class * i_class_num
                 batch_count += 1
 
 
