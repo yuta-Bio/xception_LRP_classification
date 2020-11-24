@@ -148,7 +148,7 @@ class ImageDataGenerater(object):
                 self.src_img = cv2.resize(self.pre_src_img, self.img_shape[:2])
 
                 # image process at whole image
-                alpha = random.uniform(0.3, 1.8)
+                alpha = random.uniform(0.7, 1.3)
                 pil_temp = Image.fromarray(self.src_img)
                 con_temp = ImageEnhance.Contrast(pil_temp)
                 pil_temp = con_temp.enhance(alpha)

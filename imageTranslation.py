@@ -24,7 +24,7 @@ class img_data:
             self.img = cv2.warpAffine(self.img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.img.shape[1], self.img.shape[0]))
 
 
-ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201117_dr5/**/*.tif")
+ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image/**/*.tif")
 for path in ls_path:
     # setting image
     img = cv2.imread(str(path))

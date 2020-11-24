@@ -3,7 +3,7 @@ import glob
 import numpy as np
 import cv2
 
-path = (":///home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201013_timelapse_cropped")
+path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201013_timelapse_cropped")
 dst_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image/images")
 ls_path = glob.glob(str(path) + "/*.mp4")
 print(len(ls_path))

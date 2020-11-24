@@ -1,3 +1,6 @@
+import os
+import datetime
+import shutil
 import keras
 from keras import applications
 from keras.models import Model
@@ -8,28 +11,35 @@ import matplotlib.pyplot as plt
 import numpy as np
 import Image_data_generater_LRP
 
+base_dir = ('/home/pmb-mju/dl_result')
+basename = datetime.datetime.now().strftime("%y%m%d%H%M")
+path = os.path.join(base_dir, basename)
+os.mkdir(path)
+shutil.copyfile(__file__, str(os.path.join(path, os.path.basename(__file__))))
+shutil.copyfile('Image_data_generater_LRP.py', str(os.path.join(path, 'Image_data_generater_LRP.py')))
+
 
 shape = (500, 500, 3)
 batch_size = 6
 
 # keras's data generater
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center', 60, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center_plus', 60, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
-                                                filepath='LRP_classifier_best.h5',
+                                                filepath= str(os.path.join(path, 'LRP_classifier_best.h5')),
                                                 monitor='val_loss',
                                                 save_best_only=True,
                                                 verbose=1),
                     keras.callbacks.EarlyStopping(
                                                 monitor='val_loss',
-                                                patience=100,
+                                                patience=50,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
-                                                factor=0.1,
+                                                factor=0.5,
                                                 monitor='val_loss',
-                                                patience=20,
+                                                patience=30,
                                                 verbose=1),
-                    keras.callbacks.CSVLogger('LRP_mid_data.csv', append=False)]
+                    keras.callbacks.CSVLogger( str(os.path.join(path, 'LRP_mid_data.csv')), append=False)]
 
 # use application's base model
 base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
@@ -46,7 +56,7 @@ model = Model(inputs=base_model.input, outputs=output)
 model.summary()
 
 # compile and run
-model.compile(optimizer=keras.optimizers.Adam(0.0001), loss='mse', metrics=['mae'])
+model.compile(optimizer=keras.optimizers.Adam(0.0005), loss='mse', metrics=['mae'])
 history = model.fit(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
                     epochs=1000,
@@ -55,7 +65,7 @@ history = model.fit(data_gen.train_generater(batch_size),
                     callbacks=callbacks_list)
 
 # save last model's information
-model.save('LRP_classifier.h5')
+model.save(str(os.path.join(path, 'LRP_classifier.h5')))
 
 # plot learning accuracy log
 acc = history.history['mae']
@@ -66,7 +76,7 @@ plt.plot(epochs, val_acc, 'b', label='Validation acc')
 plt.legend()
 
 # save accuracy figure
-plt.savefig('LRP_classifier')
+plt.savefig(str(os.path.join(path, 'LRP_classifier_mae.png')))
 
 # clear figure
 plt.clf()
@@ -79,4 +89,4 @@ plt.plot(epochs, val_loss, 'b', label = 'validation loss')
 plt.legend()
 
 # save loss figure
-plt.savefig('LRP_classifier_loss')
+plt.savefig(str(os.path.join(path, 'LRP_classifier_loss.png')))
