@@ -35,9 +35,9 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 patience=50,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
-                                                factor=0.5,
+                                                factor=0.25,
                                                 monitor='val_loss',
-                                                patience=30,
+                                                patience=25,
                                                 verbose=1),
                     keras.callbacks.CSVLogger( str(os.path.join(path, 'LRP_mid_data.csv')), append=False)]
 
