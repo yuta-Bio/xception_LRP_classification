@@ -1,11 +1,13 @@
 import os
 import shutil
+import random
 import glob
 import cv2
 import numpy as np
 
-src_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/201123_dr5")
+src_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center_plus_4th")
 ls_path = glob.glob(src_path + '/images/*.tif')
+random.shuffle(ls_path)
 path_stage0 = os.path.join(src_path, 'stage0')
 path_stage1 = os.path.join(src_path, 'stage1')
 path_stage2 = os.path.join(src_path, 'stage2')

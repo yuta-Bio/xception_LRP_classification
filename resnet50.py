@@ -14,7 +14,8 @@ import Image_data_generater_LRP
 base_dir = ('/home/pmb-mju/dl_result')
 basename = datetime.datetime.now().strftime("%y%m%d%H%M")
 path = os.path.join(base_dir, basename)
-os.mkdir(path)
+if not os.path.isdir(path):
+    os.mkdir(path)
 shutil.copyfile(__file__, str(os.path.join(path, os.path.basename(__file__))))
 shutil.copyfile('Image_data_generater_LRP.py', str(os.path.join(path, 'Image_data_generater_LRP.py')))
 
