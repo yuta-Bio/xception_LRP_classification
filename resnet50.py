@@ -12,7 +12,7 @@ import numpy as np
 import Image_data_generater_LRP
 
 base_dir = ('/home/pmb-mju/dl_result')
-basename = datetime.datetime.now().strftime("%y%m%d%H%M")
+basename = datetime.datetime.now().strftime("%y%m%d%H%M") + '_' + str(os.path.basename(str(__file__)))[:-3]
 path = os.path.join(base_dir, basename)
 if not os.path.isdir(path):
     os.mkdir(path)
