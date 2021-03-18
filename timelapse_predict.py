@@ -8,7 +8,7 @@ import numpy as np
 import cv2
 
 ls_path = glob.glob('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image_201127/cropped/*.mp4')
-dst_dir_path = '/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image_201127/predicted/Position001_chan00_croped_predicted_frame'
+dst_dir_path = '/home/pmb-mju/dl_result/2101261544_timelapse_analyze'
 
 # create model
 shape = (500, 500, 3)
@@ -41,20 +41,25 @@ model.load_weights("/home/pmb-mju/dl_result/2011251614/LRP_classifier_best.h5")
 #     out.release()
 #     movie.release()
 
-
-movie = cv2.VideoCapture(str(ls_path[0]))
+dst_path = "/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/timelapse/resource/dst/210126_cafe_timelapse/Position007_chan00_croped.mp4"
+# movie = cv2.VideoCapture(str(ls_path[0]))
+movie = cv2.VideoCapture(dst_path)
 if movie.isOpened() is False:
     exit()
 
 # Define the codec and create VideoWriter object
 total_frame = movie.get(cv2.CAP_PROP_FRAME_COUNT)
+fourcc = cv2.VideoWriter_fourcc('m','p','4', 'v')
+out = cv2.VideoWriter(dst_dir_path + ".mp4",fourcc, 6.0, (500,500))
+
 for num in range(int(total_frame)):
     flg, img = movie.read()
     pre_img = np.reshape(img, (1, 500, 500, 3))
     pre_img = pre_img.astype('float32') / 255
     stage = model.predict(pre_img)
-    stage = stage[0] * 8
+    stage = stage[0] * 7
     dst_img = cv2.putText(img, "stage : " + str(stage), (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    cv2.imwrite(dst_dir_path + str(num) + ".png", dst_img)
-
+    # cv2.imwrite(dst_dir_path + str(num) + ".png", dst_img)
+    out.write(dst_img)
 movie.release()
+out.release()

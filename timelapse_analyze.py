@@ -56,6 +56,8 @@ for i_path in ls_path:
     treatment_df = ""
     if "msd" in i_path:
         treatment_df = "msd"
+    elif "cafe_c22" in i_path:
+        treatment_df = "cafe+c22"
     elif "cafe" in i_path:
         treatment_df = "cafe"
     else:
@@ -64,5 +66,5 @@ for i_path in ls_path:
         series = pd.Series([i_path, i_stage, treatment_df, ls_lrp_time[i_stage]], index=df_2.columns, name=len(df_2.index))
         df_2 = df_2.append(series)
     ls_lrp_time[:] = 0
-df.to_csv(str(os.path.join(str(path), "lrp_time.csv")))
+# df.to_csv(str(os.path.join(str(path), "lrp_time.csv")))
 df_2.to_csv(str(os.path.join(str(path), "lrp_time2.csv")))

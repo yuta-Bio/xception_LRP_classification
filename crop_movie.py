@@ -3,7 +3,8 @@ import os
 import copy
 import numpy as np
 import cv2
-
+import re
+import sys
 class img_data:
     def __init__(self, img):
         self.img = img
@@ -18,8 +19,18 @@ class img_data:
             self.move_y = mid_y - y
             self.img = cv2.warpAffine(self.img, np.float32([[1, 0, self.move_x], [0, 1, self.move_y]]), (self.img.shape[1], self.img.shape[0]))
 
-ls_path = glob.glob("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/210112_dr5_cafe_timelapse/*.avi")
-dst_dir_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/timelapse/resource/dst/210112_dr5_cafe")
+path_src = "/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/timelapse/resource/src/210209_kcs1_5__4dag_4day"
+ls_path = glob.glob(path_src + "/*.mp4")
+dir_last = re.split(r"[/]", path_src)[-1]
+dir_former = re.split(r"[/]", path_src)[:-2]
+dir_former = dir_former[1:]
+dst_dir = ""
+for dirs in dir_former:
+    dst_dir = dst_dir + "/" + dirs
+dst_dir += "/dst"
+dst_dir_path = str(os.path.join(dst_dir,dir_last))
+if not os.path.isdir(dst_dir_path):
+    os.mkdir(dst_dir_path)
 
 for num, path in enumerate(ls_path):
     movie = cv2.VideoCapture(str(path))
@@ -65,7 +76,7 @@ for num, path in enumerate(ls_path):
     fourcc = cv2.VideoWriter_fourcc('m','p','4', 'v')
     out = cv2.VideoWriter(str(dst_path),fourcc, 6.0, (500,500))
     crop_rate = 3.5
-    for num in range(166):
+    for num in range(int(total_frame)):
         flg, img = movie.read()
         img = cv2.warpAffine(img, np.float32([[1, 0, image_data.move_x], [0, 1, image_data.move_y]]), (img.shape[1], img.shape[0]))
         path_img_dst = str(os.path.join(dst_dir_path, str(os.path.basename(path)) + str(num) + 'centered.png'))
