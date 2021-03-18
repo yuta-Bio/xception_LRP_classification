@@ -4,8 +4,6 @@ import random
 import os
 import numpy as np
 import cv2
-from skimage.morphology import skeletonize
-from plantcv import plantcv as pcv
 from PIL import Image
 from PIL import ImageEnhance
 
