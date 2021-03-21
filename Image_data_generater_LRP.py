@@ -4,8 +4,6 @@ import random
 import os
 import numpy as np
 import cv2
-from skimage.morphology import skeletonize
-from plantcv import plantcv as pcv
 from PIL import Image
 from PIL import ImageEnhance
 
@@ -28,7 +26,7 @@ class ImageDataGenerater(object):
             for j in temp_path:
                 self.class_path_pairs.append((num_stage, j))
 
-        self.num_class = len(self.class_num_pair)
+        self.num_class = len(self.class_num_pair) - 1
 
         #shuffle class and path's list for randomize
         random.seed(1)
@@ -132,8 +130,8 @@ class ImageDataGenerater(object):
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, R, (int(ox*2), int(oy*2)), flags=cv2.INTER_NEAREST)
 
                 # random translation
-                move_x = random.randint(-1 * self.pre_src_img.shape[1] // 7, self.pre_src_img.shape[1] // 7)
-                move_y = random.randint(-1 * self.pre_src_img.shape[0] // 7, self.pre_src_img.shape[0] // 7)
+                move_x = random.randint(-1 * self.pre_src_img.shape[1] // 9, self.pre_src_img.shape[1] // 9)
+                move_y = random.randint(-1 * self.pre_src_img.shape[0] // 9, self.pre_src_img.shape[0] // 9)
                 self.pre_src_img = cv2.warpAffine(self.pre_src_img, np.float32([[1, 0, move_x], [0, 1, move_y]]), (self.pre_src_img.shape[1], self.pre_src_img.shape[0]))
 
                 # crop image
@@ -152,6 +150,9 @@ class ImageDataGenerater(object):
                 pil_temp = Image.fromarray(self.src_img)
                 con_temp = ImageEnhance.Contrast(pil_temp)
                 pil_temp = con_temp.enhance(alpha)
+                
+                bri_temp = ImageEnhance.Brightness(pil_temp)
+                pil_temp = bri_temp.enhance(random.uniform(0.8, 1.2))
 
                 con_temp1 = ImageEnhance.Sharpness(pil_temp)
                 pil_temp = con_temp1.enhance(random.uniform(0.8, 1.2))
@@ -178,8 +179,18 @@ class ImageDataGenerater(object):
 
                     rec_img = copy.copy(self.temp_img)
                     rand_color = random.randint(0, 150)
-                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), rand_color, -1)
+                    rec_img = cv2.rectangle(rec_img, (x, y), (h, w), (rand_color, rand_color, rand_color), -1)
                     self.src_img = cv2.subtract(self.src_img, rec_img)
+
+                # cutout image
+                hg_fw = random.randint(0, 100)
+                hg_rv = random.randint(0, 100)
+                wd_fw = random.randint(0, 100)
+                wd_rv = random.randint(0, 100)
+                self.src_img[0:hg_fw, :] = 0
+                self.src_img[self.src_img.shape[0] - hg_rv:self.src_img.shape[0], :] = 0
+                self.src_img[0:wd_fw, :] = 0
+                self.src_img[:, self.src_img.shape[1] - wd_rv:self.src_img.shape[1]] = 0
 
                 # reshape data to input shape
                 inputs[batch_count] = (self.src_img.astype('float32') / 255.).reshape(self.img_shape)
@@ -187,7 +198,7 @@ class ImageDataGenerater(object):
 
                 # targets[batch_count] = 0
                 # targets[batch_count, i_class_num] = 1
-                targets[batch_count] = 1 / self.num_class * i_class_num
+                targets[batch_count] = i_class_num / self.num_class
                 batch_count += 1
 
     def val_generate(self, batch_size):
@@ -205,14 +216,14 @@ class ImageDataGenerater(object):
 
                 # targets[batch_count] = 0
                 # targets[batch_count, i_class_num] = 1
-                targets[batch_count] = 1 / self.num_class * i_class_num
+                targets[batch_count] = i_class_num / self.num_class
                 batch_count += 1
 
 
 
 if __name__ == "__main__":
     path = ('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center')
-    shape = (500, 500, 1)
+    shape = (500, 500, 3)
     data_gen = ImageDataGenerater(path, 30, img_shape=shape)
 
     print(data_gen.class_num_pair)
@@ -220,11 +231,10 @@ if __name__ == "__main__":
     print('val num', str(len(data_gen.val_class_list)))
     for num, i in enumerate(data_gen.train_generater(1)):
         print(i[1])
-        if num % 280 == 1:
-            img = (i[0] * 255).astype('uint8').reshape(shape)
-            cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
-            cv2.imshow('temp', img)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-            print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
+        img = (i[0] * 255).astype('uint8').reshape(shape)
+        cv2.namedWindow('temp', cv2.WINDOW_NORMAL)
+        cv2.imshow('temp', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        print(np.mean(i[0]), np.max(i[0]), np.min(i[0]))
 

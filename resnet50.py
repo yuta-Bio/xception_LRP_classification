@@ -12,9 +12,10 @@ import numpy as np
 import Image_data_generater_LRP
 
 base_dir = ('/home/pmb-mju/dl_result')
-basename = datetime.datetime.now().strftime("%y%m%d%H%M")
+basename = datetime.datetime.now().strftime("%y%m%d%H%M") + '_' + str(os.path.basename(str(__file__)))[:-3]
 path = os.path.join(base_dir, basename)
-os.mkdir(path)
+if not os.path.isdir(path):
+    os.mkdir(path)
 shutil.copyfile(__file__, str(os.path.join(path, os.path.basename(__file__))))
 shutil.copyfile('Image_data_generater_LRP.py', str(os.path.join(path, 'Image_data_generater_LRP.py')))
 
@@ -35,9 +36,9 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 patience=50,
                                                 verbose=1),
                     keras.callbacks.ReduceLROnPlateau(
-                                                factor=0.5,
+                                                factor=0.25,
                                                 monitor='val_loss',
-                                                patience=30,
+                                                patience=25,
                                                 verbose=1),
                     keras.callbacks.CSVLogger( str(os.path.join(path, 'LRP_mid_data.csv')), append=False)]
 
