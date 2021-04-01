@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import Image_data_generater_LRP
 
-base_dir = ('/home/pmb-mju/dl_result')
+base_dir = (r'C:\Users\PMB_MJU\dl_result')
 basename = datetime.datetime.now().strftime("%y%m%d%H%M") + '_' + str(os.path.basename(str(__file__)))[:-3]
 path = os.path.join(base_dir, basename)
 if not os.path.isdir(path):
@@ -24,7 +24,7 @@ shape = (500, 500, 3)
 batch_size = 6
 
 # keras's data generater
-data_gen = Image_data_generater_LRP.ImageDataGenerater('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center_plus', 60, img_shape=shape)
+data_gen = Image_data_generater_LRP.ImageDataGenerater(r'C:\Users\PMB_MJU\x40_images_center_plus', 60, img_shape=shape)
 
 callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 filepath= str(os.path.join(path, 'LRP_classifier_best.h5')),
@@ -40,10 +40,10 @@ callbacks_list = [keras.callbacks.ModelCheckpoint(
                                                 monitor='val_loss',
                                                 patience=25,
                                                 verbose=1),
-                    keras.callbacks.CSVLogger( str(os.path.join(path, 'LRP_mid_data.csv')), append=False)]
+                    keras.callbacks.CSVLogger(str(os.path.join(path, 'LRP_mid_data.csv')))]
 
 # use application's base model
-base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
+base_model = applications.ResNet50(include_top = False, input_shape = shape)
 
 # froze model's layer
 # for num, layer in enumerate(base_model.layers):
@@ -58,7 +58,7 @@ model.summary()
 
 # compile and run
 model.compile(optimizer=keras.optimizers.Adam(0.0005), loss='mse', metrics=['mae'])
-history = model.fit(data_gen.train_generater(batch_size),
+history = model.fit_generator(data_gen.train_generater(batch_size),
                     steps_per_epoch=data_gen.train_num // batch_size,
                     epochs=1000,
                     validation_data=data_gen.val_generate(batch_size),

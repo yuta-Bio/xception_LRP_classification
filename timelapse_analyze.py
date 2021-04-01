@@ -5,26 +5,33 @@ import datetime
 import math
 import pandas as pd
 import keras
-from keras import applications, layers, Model
+from keras import layers, Model, applications
+import tensorflow as tf
 import numpy as np
 import cv2
 
-base_dir = ('/home/pmb-mju/dl_result')
+base_dir = (R"C:\Users\PMB_MJU\dl_result")
 basename = datetime.datetime.now().strftime("%y%m%d%H%M") + '_' + str(os.path.basename(str(__file__)))[:-3]
 path = os.path.join(base_dir, basename)
 if not os.path.isdir(path):
     os.mkdir(path)
 shutil.copyfile(__file__, str(os.path.join(path, os.path.basename(__file__))))
 
-ls_path = glob.glob('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/timelapse/resource/dst/**/*.mp4', recursive=True)
+ls_path = glob.glob(r'C:\Users\PMB_MJU\timelapse\resource\dst/**/*.mp4', recursive=True)
 
 # create model
 shape = (500, 500, 3)
-base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
+base_model = applications.ResNet50(include_top = False, input_shape = shape)
+
+# froze model's layer
+# for num, layer in enumerate(base_model.layers):
+#     base_model.layers[num].trainable = False
+
 x = layers.Flatten()(base_model.output)
 output = layers.Dense(1)(x)
 model = Model(inputs=base_model.input, outputs=output)
-model.load_weights(r"C:\Users\PMB_MJU\dl_result\2101122131_resnet50\LRP_classifier_best.h5")
+model.load_weights(r"C:\Users\PMB_MJU\dl_result\2103181525_resnet50\LRP_classifier_best.h5")
+
 column = list(range(0, 8))
 df = pd.DataFrame(columns=column)
 df_2 = pd.DataFrame(columns=["path", "stage", "treatment", "time"])
@@ -64,7 +71,7 @@ for i_path in ls_path:
         pre_img = np.reshape(img, (1, 500, 500, 3))
         pre_img = pre_img.astype('float32') / 255
         stage = model.predict(pre_img)
-        series = pd.Series([i_path, stage, col_treatment, time_frame], name=len(df_3.index))
+        series = pd.Series([i_path, stage[0][0] * 7, col_treatment, time_frame], name=len(df_3.index), index=df_3.columns)
         df_3 = df_3.append(series)
         stage = math.floor(stage[0] * 7)
         if stage > 7:
