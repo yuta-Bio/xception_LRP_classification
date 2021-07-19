@@ -54,7 +54,7 @@ class ImageDataGenerater(object):
         else: flg_imread = 1
 
         for num, i in enumerate(self.class_path_pairs):
-            print('total num ', str(len(self.class_path_pairs)), 'current num ', str(num + 1), i[1], end = '\r')
+            print('total num ', str(len(self.class_path_pairs)), 'current num ', str(num + 1), i[1] + "                       ", end = '\r')
             temp_src_img = cv2.imread(
                                 str(i[1]), flg_imread)
 
@@ -161,6 +161,10 @@ class ImageDataGenerater(object):
                 self.src_img = np.array(pil_temp)
                 self.src_img = np.clip(self.src_img, 0, 255).astype(np.uint8)
 
+                # random resolution
+                kernel_num = random.randint(1, 4) * 2 - 1
+                self.src_img = cv2.blur(self.src_img, (kernel_num, kernel_num))
+
                 # draw rectangle
                 rec_freq = random.randint(0, 5)
                 for k in range(rec_freq):
@@ -222,7 +226,7 @@ class ImageDataGenerater(object):
 
 
 if __name__ == "__main__":
-    path = ('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center')
+    path = (r'C:\Users\PMB_MJU\x40_images_center_plus')
     shape = (500, 500, 3)
     data_gen = ImageDataGenerater(path, 30, img_shape=shape)
 

@@ -8,15 +8,19 @@ import numpy as np
 import cv2
 
 ls_path = glob.glob('/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/from_timelapse_to_image_201127/cropped/*.mp4')
-dst_dir_path = '/home/pmb-mju/dl_result/2101261544_timelapse_analyze'
-
+dst_dir_path = r"C:\Users\PMB_MJU\timelapse\temp"
 # create model
 shape = (500, 500, 3)
-base_model = applications.ResNet50V2(include_top = False, input_shape = shape)
+base_model = applications.ResNet50(include_top = False, input_shape = shape)
+
+# froze model's layer
+# for num, layer in enumerate(base_model.layers):
+#     base_model.layers[num].trainable = False
+
 x = layers.Flatten()(base_model.output)
 output = layers.Dense(1)(x)
 model = Model(inputs=base_model.input, outputs=output)
-model.load_weights("/home/pmb-mju/dl_result/2011251614/LRP_classifier_best.h5")
+model.load_weights(r"C:\Users\PMB_MJU\dl_result\2104091638_resnet50\LRP_classifier_best.h5")
 
 # for path in ls_path:
 #     print(path)
@@ -41,7 +45,7 @@ model.load_weights("/home/pmb-mju/dl_result/2011251614/LRP_classifier_best.h5")
 #     out.release()
 #     movie.release()
 
-dst_path = "/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/timelapse/resource/dst/210126_cafe_timelapse/Position007_chan00_croped.mp4"
+dst_path = r"C:\Users\PMB_MJU\timelapse\resource\dst\210326_col0_msd_4dag\Position006_chan00_croped.avi"
 # movie = cv2.VideoCapture(str(ls_path[0]))
 movie = cv2.VideoCapture(dst_path)
 if movie.isOpened() is False:

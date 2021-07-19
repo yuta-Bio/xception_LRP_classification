@@ -5,8 +5,8 @@ import glob
 import cv2
 import numpy as np
 
-src_path = ("/home/pmb-mju/DL_train_data/train_data_img/LRP_Class_resrc/x40_images_center_plus")
-ls_path = glob.glob(src_path + '/images/*.tif')
+src_path = r"C:\Users\PMB_MJU\x40_images_center_plus"
+ls_path = glob.glob(src_path + '/images/*.png')
 random.shuffle(ls_path)
 path_stage0 = os.path.join(src_path, 'stage0')
 path_stage1 = os.path.join(src_path, 'stage1')

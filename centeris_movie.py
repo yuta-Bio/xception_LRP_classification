@@ -24,30 +24,20 @@ args = sys.argv
 
 
 path_src = args[1]
-ls_path = glob.glob(path_src + "/*.avi")
-dir_last = re.split(r"[\\]", path_src)[-1]
-dir_former = re.split(r"[\\]", path_src)[:-2]
-dir_former = dir_former[1:]
-dst_dir = ""
-for dirs in dir_former:
-    dst_dir = dst_dir + "/" + dirs
-dst_dir += "\dst"
-dst_dir_path = str(os.path.join(dst_dir,dir_last))
-if not os.path.isdir(dst_dir_path):
-    os.mkdir(dst_dir_path)
-
-for num, path in enumerate(ls_path):
+ls_path = glob.glob(path_src + "/**/*.avi", recursive=True)
+dst_dir = r"C:\Users\PMB_MJU\timelapse\resource\centered"
+dir_dst = r"C:\Users\PMB_MJU\x40_images_center_plus"
+for i_num, path in enumerate(ls_path):
     movie = cv2.VideoCapture(str(path))
     if movie.isOpened() is False:
         exit()
 
     # Define the codec and create VideoWriter object
-    dst_path = os.path.join(dst_dir_path, str(os.path.basename(path))[:-4] + "_croped.avi")
 
     total_frame = movie.get(cv2.CAP_PROP_FRAME_COUNT)
     # flg, img = movie.read()
     img = np.empty(0)
-    for num in range(int(total_frame - 1)):
+    for j_num in range(int(total_frame - 1)):
         flg, img = movie.read()
     movie.release()
     movie = cv2.VideoCapture(str(path))
@@ -77,20 +67,11 @@ for num, path in enumerate(ls_path):
             break
     if flg_key == 98:
         continue
-    fourcc = cv2.VideoWriter_fourcc(*"DIVX")
-    out = cv2.VideoWriter(str(dst_path),fourcc, 6.0, (500,500))
-    crop_rate = 3.5
-    for num in range(int(total_frame)):
+    for j_num in range(int(total_frame)):
         flg, img = movie.read()
         img = cv2.warpAffine(img, np.float32([[1, 0, image_data.move_x], [0, 1, image_data.move_y]]), (img.shape[1], img.shape[0]))
-        path_img_dst = str(os.path.join(dst_dir_path, str(os.path.basename(path)) + str(num) + 'centered.png'))
-        # cv2.imwrite(path_img_dst, img)
-        # img = img[hg //2 -shape[0] // 2 : hg // 2 + shape[0] // 2, wd // 2 - shape[1] //2 : wd // 2 + shape[1] // 2]
-        ht = img.shape[0]
-        wd = img.shape[1]
-        img = img[int(ht/crop_rate): int(ht - (ht/crop_rate)), int(wd / crop_rate) : int(wd - (wd / crop_rate))]
-        img = cv2.resize(img, (500, 500))
-
-        out.write(img)
-    out.release()
-    movie.release()
+        dir_dst_img = os.path.join(dir_dst, str(i_num) + "_" + str(j_num) + ".png")
+        if j_num < 30 and j_num % 2 == 0:
+            cv2.imwrite(dir_dst_img, img)
+        elif j_num % 6 == 0:
+            cv2.imwrite(dir_dst_img, img)
